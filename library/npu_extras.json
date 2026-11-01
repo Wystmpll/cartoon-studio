@@ -1,0 +1,81 @@
+{
+ "Спайдермен": {
+  "h": 178,
+  "skin": "#e3b98f",
+  "hair": "messy",
+  "hc": "#2a1d14",
+  "top": "hoodie",
+  "tc": "#7a6f5a",
+  "t2": "#6a604c",
+  "pants": "#3a3a30",
+  "shoes": "#555555",
+  "acc": [
+   "stink",
+   "bandage"
+  ]
+ },
+ "Фарамуз": {
+  "h": 178,
+  "skin": "#e2b48a",
+  "hair": "short",
+  "hc": "#1a120c",
+  "top": "tee",
+  "tc": "#5a8a6a",
+  "t2": "#ffffff",
+  "pants": "#333a48",
+  "shoes": "#dddddd",
+  "acc": []
+ },
+ "Геос": {
+  "h": 181,
+  "skin": "#e8c09a",
+  "hair": "cap",
+  "hc": "#1a120c",
+  "top": "hoodie",
+  "tc": "#8a5a5a",
+  "t2": "#6a4444",
+  "pants": "#2a2e38",
+  "shoes": "#dddddd",
+  "acc": []
+ },
+ "Глеб": {
+  "h": 182,
+  "skin": "#f0caa8",
+  "hair": "side",
+  "hc": "#d8b878",
+  "top": "jacket",
+  "tc": "#4a6a9a",
+  "t2": "#ffffff",
+  "pants": "#2a2e38",
+  "shoes": "#ffffff",
+  "acc": []
+ },
+ "Парень": {
+  "h": 180,
+  "skin": "#e4b48c",
+  "hair": "fade",
+  "hc": "#120d0a",
+  "top": "jacket",
+  "tc": "#9a2a3a",
+  "t2": "#1b1b1f",
+  "pants": "#22252e",
+  "shoes": "#ffffff",
+  "acc": []
+ },
+ "Девушка": {
+  "h": 165,
+  "skin": "#f0c8a4",
+  "hair": "long",
+  "hc": "#d9a35a",
+  "top": "cardi",
+  "tc": "#f5c542",
+  "t2": "#ffffff",
+  "pants": "#2a2e38",
+  "shoes": "#ffffff",
+  "acc": [
+   "lashes"
+  ],
+  "girl": true,
+  "bw": 0.85
+ }
+}
