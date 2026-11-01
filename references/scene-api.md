@@ -45,7 +45,24 @@ Colours: for new background drawing use `pal("#hex")` so styles can recolour it;
 whoosh swoosh_up impact boom thud punch knock steps heartbeat glass door buzz typing pop click beep ding riser sting
 scream groan crowd rotor splash alarm wind rain laugh_beep. Put 1-3 per scene on real events (door, hit, reveal).
 
+## More helpers
+- `NO_OVERLAY = {"office", "kitchen"}` in scenes_p<N>.py turns the style overlay (noir rain, notebook lines) off for
+  those scene ids — e.g. no rain indoors.
+- Phone at the ear (any size, incl. close-ups): draw the person with arms down, then `ear_phone(c, name, x, y, H, side)`.
+  Don't raise `arms` to hold a phone in a close-up — the arm sticks out sideways.
+- `lying(c, name, x, y, H, t)`: the body lies along x with the head about 0.77·H·h/185 to the left of x.
+- Project `characters.json` entries merge into the library entry with the same name (give only what changes, e.g.
+  `{"Даник": {"shoes": "#555555"}}`); add `"replace": true` to replace it completely.
+- `chip()` / `label()` switch to the CJK font automatically when the text has Chinese characters.
+
 ## Lessons learned (pitfalls)
+- Noir keeps reds (blush, red shoes, scarves) — red is its accent. Recolour library items you don't want highlighted.
+- Characters face the viewer; `arms` raise toward screen-right only. Put props a character reaches for on their right
+  (viewer's right), or mirror the whole person with `c.save(); c.translate(x, 0); c.scale(-1, 1)` and draw at x=0
+  (text on clothes will mirror too — avoid it for jersey numbers).
+- Built-in labels follow project.json "lang" (`tr("КУХНЯ", "KITCHEN")`); use `tr()` for any text you add to shared
+  sets. `notice(title=, big=, line=, small=)` and `phone(title=)` take your own text.
+- Big characters near the screen edge can get their side name tag clipped by the camera push: keep x within 120-600.
 - Frame is cleared by the renderer, but a set that doesn't paint the area below the floor leaves it dark — fine.
 - `c.scale(k, k)` with k = 0 crashes cairo ("invalid matrix"): use `max(pop(...), 1e-3)` before scaling.
 - Fonts: Inter (Black/ExtraBold) for Cyrillic/Latin, "Noto Sans CJK SC" for Chinese, "DejaVu Serif"/"DejaVu Sans Mono".

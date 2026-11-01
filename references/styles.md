@@ -13,7 +13,7 @@ of the job: **compose scenes in the language of the style** (table below). Show 
 | 4 | comic | Комикс | action, parody | Split screens with `panel()` as comic panels (2-4 per scene), `burst("БАМ!")`, bold poses; captions become yellow boxes |
 | 5 | papercut | Бумажная аппликация | fairy tales, kids | Few large flat props, layered depth, slow parallax; stepped animation is automatic (on 2s) |
 | 6 | pixel | Пиксель-арт | gamer stories | Side-view like a platformer, simple big shapes (detail is lost), HUD-like chips (HP, score, timers) |
-| 7 | doodle | Каракули в тетрадке | memes, explanations | `paper_bg("notebook")` or plain light rooms, arrows, handwritten-looking labels, stick-simple props |
+| 7 | doodle | Каракули в тетрадке | memes, explanations | A plain light fill (the style already adds notebook lines — don't add `paper_bg`), arrows, handwritten-looking labels, stick-simple props |
 | 8 | noir | Нуар | detective, thriller | Night, rain overlay (automatic), hard light cones (`light_cone`), silhouettes (`sil=True`), red as the only colour (blood, lipstick, sign) |
 | 9 | isometric | Изометрия | heists, "who was where", plans | `iso_room()` + `iso_box()` furniture, small characters (H≈150) placed with the returned P2(u,v) |
 | 10 | retro30 | Ретро 1930-х | absurd comedy, parody | Bouncy walks, pie eyes (automatic), iris-in/out (darken with radial), intertitle captions |

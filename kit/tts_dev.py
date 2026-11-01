@@ -11,7 +11,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import align
 
 def ensure_rhvoice():
-    if subprocess.run(["which", "RHVoice-test"], capture_output=True).returncode != 0:
+    need = subprocess.run(["which", "RHVoice-test"], capture_output=True).returncode != 0
+    need = need or not os.path.isdir("/usr/share/RHVoice/voices/aleksandr-hq") or not os.path.isdir("/usr/share/RHVoice/voices/alan")
+    if need:
         subprocess.run("apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -q rhvoice rhvoice-russian rhvoice-english", shell=True, check=True)
     conf = "/etc/RHVoice/RHVoice.conf"
     txt = open(conf).read() if os.path.exists(conf) else ""

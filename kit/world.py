@@ -130,7 +130,8 @@ def namecol(n):
     r, g, b, _ = hexc(d["tc"]); lum = 0.3 * r + 0.59 * g + 0.11 * b
     return d["tc"] if lum > 0.35 else "#9aa3b8"
 
-def phone(c, t, msgs, x=W / 2, y=440, s=1.0, title="КОМПАШКА", typing=None, t0=0.0):
+def phone(c, t, msgs, x=W / 2, y=440, s=1.0, title=None, typing=None, t0=0.0):
+    title = title or tr("ЧАТ", "GROUP CHAT")
     """msgs: list of (time, name, text). shows those with time<=t, last 5."""
     k = eout(seg(t, t0, t0 + 0.35))
     if k <= 0: return

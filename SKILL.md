@@ -45,8 +45,16 @@ Use a task list: interview, checkpoint 1, cast+style, checkpoint 2, voice, scene
  "cast": ["Нурали", "Талейран"], "handle": "@npu.zombie",
  "parts": {"1": {"end": ["часть 2", "УМРИ, УМРИ"]}, "2": {"end": ["конец", "ВТОРОЙ ПУТЬ"]}}}
 ```
+Optional: `"next_label"` (the line under a non-final end card; default «ПРОДОЛЖЕНИЕ СЛЕДУЕТ» / "TO BE CONTINUED").
+`"lang": "en"` switches built-in labels (rooms, notice, chat title, end card) to English.
 `script.py`: `PARTS = {1: [("scene_id", ["line", "line"]), ..., ("end", [])]}`, plus `TTS_FIX` (stress spellings
 like `{"Нурали": "Нурал+и"}` for the draft synth), `KEY_RED` / `KEY_YEL` (caption highlight words).
+
+## Unattended mode
+If the user says "don't ask, decide yourself, skip approvals" (or is away), skip the interview and all checkpoints,
+make every choice yourself, use the best voice available without them (draft RHVoice unless audio was provided), and
+say at the top of your final message which choices you made. Still review stills yourself before rendering, and ask
+the learning-loop questions next time the user is around.
 
 ## Step 0 — a reference video (if the user sends one)
 Study it before asking anything, and skip the questions it answers. Duration and frames with ffprobe/ffmpeg; contact
@@ -65,7 +73,8 @@ Choices via AskUserQuestion (≤4 per call); free-text blocks as numbered lists.
 a logline. If they will voice it themselves, give the text as files and say "вставь целиком, не читая".
 
 ## Step 2 — story → checkpoint 1
-Read `~/cs/references/story.md`. Pace ≈ 2.3 words/s: 2 min ≈ 250-270 Russian words (~1500 chars); 13-20 scenes per part;
+Read `~/cs/references/story.md`. Pace: Russian ≈ 2.3 words/s (2 min ≈ 250-270 words, ~1500 chars), English ≈ 2.6 words/s
+(40 s ≈ 85-95 words, 2 min ≈ 300 words); 13-20 scenes per 2-minute part (a 40 s film ≈ 6-9 scenes);
 a 4 s end card per part. Every named character gets a beat only they could do. Plant clues early, pay them off later.
 Write `script.py`, count words per part (`re.findall(r"\w+")`), then show the package: title, parts + titles, 3-5
 line synopsis each (or logline), cast with roles, style, voice, music. Ask «Утверждаем или что поменять?».
@@ -100,10 +109,11 @@ y≈850), a tiny character in a big empty frame, text too long for a phone or no
 
 ## Step 6 — render, mix, verify → checkpoint 3
 ```bash
-python ~/cs/kit/render.py PROJ N          # run in background for long parts; ~1-2 min per minute of video
-python ~/cs/kit/audio.py PROJ N           # music (project mood) + SFX + voice normalised to -15 LUFS → out/FINAL_pN.mp4
+python ~/cs/kit/render.py PROJ N          # run in background; ~2-5 min per minute of video (grain/noir slowest)
+python ~/cs/kit/audio.py PROJ N           # music + SFX + voice (-15 LUFS) → out/FINAL_pN.mp4; uses voice/pN.wav,
+                                          # or the draft voice/pN_dev.wav if no real voice was aligned; caps bitrate
 ```
-Verify before sending: duration (≈ narration + end card), `volumedetect` mean ≈ -16 dB, a 1/5 fps contact sheet of
+Verify before sending: duration (≈ narration + end card), `volumedetect` mean between about -17 and -13 dB, a 1/5 fps contact sheet of
 the final file (captions present and in sync with scene content, nothing cropped). Name files so they sort
 (`<title>_chast1.mp4`) and send all parts with SendUserFile. Say honestly what you checked (frames, loudness) and
 what you couldn't (you can't listen to the audio).

@@ -29,24 +29,30 @@ def chars_sheet(proj, names=None):
     names = names or cfg.get("cast") or list(chars.P)
     surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); c = cairo.Context(surf)
     from engine import src, hexc
-    g = cairo.LinearGradient(0, 0, 0, H); g.add_color_stop_rgb(0, *hexc("#141b2e")[:3]); g.add_color_stop_rgb(1, *hexc("#0a0d16")[:3])
-    c.set_source(g); c.paint()
+    import captions
+    light = captions.CAP.get("spoken", "#ffffff") != "#ffffff"
+    if light:
+        src(c, "#f4efe4"); c.paint()
+    else:
+        g = cairo.LinearGradient(0, 0, 0, H); g.add_color_stop_rgb(0, *hexc("#141b2e")[:3]); g.add_color_stop_rgb(1, *hexc("#0a0d16")[:3])
+        c.set_source(g); c.paint()
+    ink = "#1b1b1f" if light else "#ffffff"
     per_row = 5 if len(names) > 10 else 4 if len(names) > 6 else 3 if len(names) > 3 else max(1, len(names))
     rows = [names[i:i + per_row] for i in range(0, len(names), per_row)]
     rh = min(520, (H - 150) / max(1, len(rows)))
     for r, row in enumerate(rows):
-        y = 120 + (r + 1) * rh - 20
+        y = 120 + (r + 1) * rh - 20 if len(rows) > 1 else H * 0.66
         Hh = rh * 0.78
         # police-lineup height marks: 150-190 cm
         for cm in (150, 160, 170, 180, 190):
             yy = y - Hh * cm / 185
-            src(c, "#ffffff", 0.08); c.rectangle(0, yy, W, 1.5); c.fill()
-            text(c, str(cm), 8, yy - 4, 11, "#ffffff", anchor="l", a=0.3)
+            src(c, ink, 0.1); c.rectangle(0, yy, W, 1.5); c.fill()
+            text(c, str(cm), 8, yy - 4, 11, ink, anchor="l", a=0.35)
         src(c, "#000000", 0.35); c.rectangle(0, y, W, 6); c.fill()
         for i, n in enumerate(row):
             x = W * (i + 0.5) / len(row)
             chars.person(c, n, x, y, Hh, 0.3, tag=True, tagt=-1, mood=chars.P[n].get("mood", "n"))
-    text(c, cfg.get("title", "КАСТ").upper(), W / 2, 70, 30, "#ffffff")
+    text(c, cfg.get("title", "КАСТ").upper(), W / 2, 70, 30, ink)
     out = os.path.join(proj, "out", "charsheet.png"); os.makedirs(os.path.dirname(out), exist_ok=True)
     surf.write_to_png(out); return out
 

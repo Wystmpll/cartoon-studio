@@ -191,6 +191,14 @@ def mix(proj, part, music_vol=0.18, fx_vol=0.55):
            f"[v][m][f]amix=inputs=3:duration=longest:normalize=0,alimiter=limit=0.95[a]")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-i", voice, "-i", mus, "-i", fxp, "-filter_complex", flt,
                     "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", out], check=True)
+    # grain/rain styles can blow the bitrate up (200 MB per minute): re-encode if above ~8 Mbit/s
+    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out],
+                               capture_output=True, text=True).stdout or 1)
+    if os.path.getsize(out) * 8 / max(dur, 0.1) > 8e6:
+        tmp = out[:-4] + ".small.mp4"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", out, "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+                        "-maxrate", "6M", "-bufsize", "12M", "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", tmp], check=True)
+        os.replace(tmp, out)
     return out
 
 if __name__ == "__main__":

@@ -22,7 +22,9 @@ def load_project(proj, style_override=None):
         chars.load_library(p)
     pc = os.path.join(proj, "characters.json")
     if os.path.exists(pc): chars.load_library(pc)
+    engine.LANG["code"] = cfg.get("lang", "ru")
     st = styles.apply(style_override or cfg.get("style", "survival"))
+    captions.CAP.clear(); captions.CAP.update(st["cap"])
     spec = importlib.util.spec_from_file_location("script", os.path.join(proj, "script.py"))
     script = importlib.util.module_from_spec(spec); spec.loader.exec_module(script)
     yel = set(getattr(script, "KEY_YEL", ())) | {n for n in chars.P}
@@ -62,15 +64,18 @@ class S:
         self._cues[(name, round(self.t0 + at, 2))] = vol
 
 def endcard(c, t, s, cfg, part):
-    lab, title = cfg.get("parts", {}).get(str(part), {}).get("end", ["конец", cfg.get("title", "")])
-    sky(c, t, 0.0); world.fog(c, t, 0.15, 600, 900)
-    darken(c, 0.35)
+    lab, title = cfg.get("parts", {}).get(str(part), {}).get("end", [tr("конец", "the end"), cfg.get("title", "")])
+    light = captions.CAP.get("spoken", "#ffffff") != "#ffffff"
+    if light:
+        src(c, "#f4efe4"); c.paint(); fg, fg2 = "#1b1b1f", "#555555"
+    else:
+        sky(c, t, 0.0); world.fog(c, t, 0.15, 600, 900); darken(c, 0.35); fg, fg2 = "#ffffff", "#dddddd"
     a = seg(t, 0.2, 0.8)
-    text(c, lab, W / 2, 560, 24, "#dddddd", a=a)
+    text(c, lab, W / 2, 560, 24, fg2, a=a)
     sz = 60 if text_w(c, title, 60) < W - 60 else int(60 * (W - 60) / text_w(c, title, 60))
-    text(c, title, W / 2, 628, sz, "#ffffff", a=a)
+    text(c, title, W / 2, 628, sz, fg, a=a)
     if lab.lower() not in ("конец", "the end", "end"):
-        text(c, cfg.get("next_label", "ПРОДОЛЖЕНИЕ СЛЕДУЕТ"), W / 2, 672, 16, C["red"], font=XB, a=a, track=2)
+        text(c, cfg.get("next_label", tr("ПРОДОЛЖЕНИЕ СЛЕДУЕТ", "TO BE CONTINUED")), W / 2, 672, 16, C["red"], font=XB, a=a, track=2)
 
 def overlay(c, t, kind):
     if kind == "rain": world.rain(c, t, 0.22)
@@ -98,7 +103,8 @@ def make_frame(cfg, st, part, scenes_mod):
         elif fn is None: raise KeyError(f"no scene function for '{sc['id']}' in scenes_p{part}.py")
         else: fn(c, tq, s)
         c.restore()
-        if stl.get("overlay"): overlay(c, t, stl["overlay"])
+        no_ov = getattr(scenes_mod, "NO_OVERLAY", ())   # scene ids without the style overlay (e.g. no rain indoors)
+        if stl.get("overlay") and sc["id"] not in no_ov: overlay(c, t, stl["overlay"])
         if stl["post"] or stl["vignette"]:
             c.get_target().flush()
             arr = np.ndarray((H, W, 4), np.uint8, buffer=c.get_target().get_data())
@@ -108,7 +114,11 @@ def make_frame(cfg, st, part, scenes_mod):
         g.add_color_stop_rgba(0, 0, 0, 0, 0); g.add_color_stop_rgba(1, 0, 0, 0, 0.45 if cap["spoken"] == "#ffffff" else 0.0)
         c.set_source(g); c.rectangle(0, 800, W, H - 800); c.fill()
         fa = 1 - seg(t, 0, 0.12)
-        if fa > 0: c.set_source_rgba(0.02, 0.03, 0.06, fa * 0.9); c.paint()
+        if fa > 0:
+            # light styles (dark captions) dip to paper white instead of black, so cuts don't flash dark
+            if captions.CAP.get("spoken", "#ffffff") != "#ffffff": c.set_source_rgba(0.97, 0.95, 0.91, fa * 0.9)
+            else: c.set_source_rgba(0.02, 0.03, 0.06, fa * 0.9)
+            c.paint()
         captions.draw_captions(c, T, allc, cap)
         if cfg.get("handle"): text(c, cfg["handle"], W - 24, H - 40, 15, "#ffffff", font=XB, anchor="r", a=0.45)
     return frame

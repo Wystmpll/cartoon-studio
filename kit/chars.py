@@ -9,7 +9,9 @@ P = {}   # character registry: name -> spec (see references/characters.md)
 def register(name, spec):
     d = dict(h=180, skin="#e9b98f", hair="short", hc="#1d1510", top="hoodie", tc="#4c8bf5", t2="#2f5fb0",
              pants="#2b3550", shoes="#f2f2f2", acc=[], bw=1.0)
-    d.update(spec); d.setdefault("acc", []); P[name] = d
+    if name in P and not spec.get("replace"):   # project overrides merge into the library entry
+        d = dict(P[name])
+    d.update({k: v for k, v in spec.items() if k != "replace"}); d.setdefault("acc", []); P[name] = d
     return d
 
 def load_library(path, only=None):
@@ -193,7 +195,7 @@ def person(c, name, x, y, H, t=0.0, look=0.0, mood="n", mouth=None, walk=None, r
             else:
                 c.save(); c.translate(x, y - Hp - R * 0.9 - 18); c.scale(k, k)
             fill_rr(c, -w / 2, -hh / 2, w, hh, 6, d["tc"])
-            fg = "#111111" if name in ("Санжар", "Сула", "Чина", "Камила", "Айдана", "Нурали") else "#ffffff"
+            rr, gg, bb, _ = hexc(d["tc"]); fg = "#111111" if (0.299 * rr + 0.587 * gg + 0.114 * bb) > 0.6 else "#ffffff"
             text(c, name.upper(), 0, sz * 0.36, sz, fg)
             if not side: src(c, d["tc"]); c.move_to(-6, hh / 2 - 1); c.line_to(6, hh / 2 - 1); c.line_to(0, hh / 2 + 6); c.close_path(); c.fill()
             c.restore()

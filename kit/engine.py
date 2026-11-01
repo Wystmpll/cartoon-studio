@@ -1,6 +1,11 @@
 import cairo, math, random
 
 W, H = 720, 1280
+LANG = {"code": "ru"}   # set by render.load_project from project.json "lang"
+
+def tr(ru, en):
+    """Pick the label for the project language."""
+    return en if LANG["code"] == "en" else ru
 FPS = 30
 BLACK = "Inter Black"; XB = "Inter ExtraBold"; CJK = "Noto Sans CJK SC"
 
@@ -114,22 +119,24 @@ def sticky(c, s, x, y, t, t0, size=30, num=None, sub=None, col="#f1e8d0", tilt=-
     if sub: text(c, sub, 0, by + 24, 15, "#555555", font=XB)
     c.restore()
 
-def chip(c, s, x, y, t, t0, col="red", size=17, fg="#ffffff", t1=None):
+def chip(c, s, x, y, t, t0, col="red", size=17, fg="#ffffff", t1=None, font=None):
+    font = font or (CJK if any("\u4e00" <= ch <= "\u9fff" for ch in s) else BLACK)
     k = pop(t, t0, 0.3)
     if k <= 0: return
     a = 1.0
     if t1 is not None: a = 1 - seg(t, t1, t1 + 0.25)
     if a <= 0: return
     c.save(); c.translate(x, y); c.scale(k, k)
-    w = text_w(c, s, size) + 30; h = size + 16
+    w = text_w(c, s, size, font) + 30; h = size + 16
     fill_rr(c, -w / 2, -h / 2, w, h, h / 2, C.get(col, col), a)
-    text(c, s, 0, size * 0.36, size, fg, a=a)
+    text(c, s, 0, size * 0.36, size, fg, font=font, a=a)
     c.restore()
 
-def label(c, s, x, y, t, t0, size=18, col="#ffffff", a=1.0):
+def label(c, s, x, y, t, t0, size=18, col="#ffffff", a=1.0, font=None):
     k = seg(t, t0, t0 + 0.3)
     if k <= 0: return
-    text(c, s, x, y, size, col, font=BLACK, a=k * a)
+    font = font or (CJK if any("\u4e00" <= ch <= "\u9fff" for ch in s) else BLACK)
+    text(c, s, x, y, size, col, font=font, a=k * a)
 
 def counter(c, x, y, t, t0, title, value, col="grn", w=190, h=74, sub=None):
     k = pop(t, t0, 0.3)
@@ -313,7 +320,7 @@ def room_bg(c, kind, t=0, dark=0.0, moonlight=False):
         src(c, pal("#232c46")); c.rectangle(30, 180, 380, 150); c.fill()
         src(c, pal("#2f3a5a")); c.set_line_width(3)
         for i in range(3): c.rectangle(34 + i * 126, 184, 120, 142); c.stroke()
-        text(c, "КУХНЯ", 120, 140, 22, C["dim"])
+        text(c, tr("КУХНЯ", "KITCHEN"), 120, 140, 22, C["dim"])
     elif kind == "dorm":
         window(c, 290, 220, 150, 140, 0.0)
         # beds
@@ -331,7 +338,7 @@ def room_bg(c, kind, t=0, dark=0.0, moonlight=False):
             src(c, pal("#9aa3b8")); c.rectangle(x, 560, 140, 40); c.fill()
             src(c, pal("#1e2740")); c.arc(x + 70, 690, 46, 0, 2 * math.pi); c.fill()
             src(c, pal("#3d6fbf"), 0.6); c.arc(x + 70, 690, 36, 0, 2 * math.pi); c.fill()
-        text(c, "ПРАЧЕЧНАЯ", W / 2, 140, 22, C["dim"])
+        text(c, tr("ПРАЧЕЧНАЯ", "LAUNDRY"), W / 2, 140, 22, C["dim"])
         # ceiling panels
         src(c, pal("#232c46"))
         for i in range(5): c.rectangle(20 + i * 140, 30, 130, 60); c.fill()
@@ -357,7 +364,7 @@ def room_bg(c, kind, t=0, dark=0.0, moonlight=False):
             src(c, pal("#263252")); c.rectangle(x - 22, 90, 44, FLOOR_Y - 90); c.fill()
         src(c, pal("#344260")); c.rectangle(280, 430, 160, 370); c.fill()
         src(c, pal("#4a5a82")); c.set_line_width(4); c.rectangle(280, 430, 160, 370); c.stroke(); c.move_to(360, 430); c.line_to(360, 800); c.stroke()
-        text(c, "← Б", 70, 380, 26, C["dim"]); text(c, "А →", 650, 380, 26, C["dim"])
+        text(c, tr("← Б", "← B"), 70, 380, 26, C["dim"]); text(c, tr("А →", "A →"), 650, 380, 26, C["dim"])
     if dark > 0: darken(c, dark)
 
 def cabinet(c, x, y, t, t_close=None, items=0, lock=True, open_=0.0, w=200, h=230):
@@ -397,20 +404,23 @@ def footprint(c, x, y, s, rot, col, a=1.0):
     c.arc(0, 22, 7, 0, 2 * math.pi); c.fill()
     c.restore()
 
-def notice(c, x, y, s, t, small_glow=0.0):
+def notice(c, x, y, s, t, small_glow=0.0, title=None, big=None, line=None, small=None):
+    """A posted notice. Defaults: quarantine notice in the project language; pass title/big/line/small to change."""
+    title = title or tr("КАРАНТИН", "QUARANTINE"); big = big or tr("10 ДНЕЙ", "10 DAYS")
+    line = line or tr("ДОСТАВКИ ЗАПРЕЩЕНЫ", "NO DELIVERIES"); small = small or "*期限可能延长"
     c.save(); c.translate(x, y); c.scale(s, s)
     src(c, pal("#000000"), 0.4); c.rectangle(-150 + 6, -200 + 8, 300, 400); c.fill()
     src(c, pal("#f4f1e8")); c.rectangle(-150, -200, 300, 400); c.fill()
     src(c, pal("#c4312f")); c.rectangle(-150, -200, 300, 12); c.fill()
     text(c, "隔离通知", 0, -140, 44, pal("#c4312f"), font=CJK)
-    text(c, "КАРАНТИН", 0, -92, 30, pal("#1b1b1f"))
-    text(c, "10 ДНЕЙ", 0, -50, 46, pal("#c4312f"))
+    text(c, title, 0, -92, 30, pal("#1b1b1f"))
+    text(c, big, 0, -50, 46, pal("#c4312f"))
     src(c, pal("#b9b4a6"))
     for i in range(5): c.rectangle(-115, -10 + i * 22, 230 - (i % 2) * 40, 8); c.fill()
-    text(c, "ДОСТАВКИ ЗАПРЕЩЕНЫ", 0, 118, 16, pal("#1b1b1f"), font=XB)
+    text(c, line, 0, 118, 16, pal("#1b1b1f"), font=XB)
     if small_glow > 0:
         glow(c, 60, 166, 90, (1, 0.8, 0.3), 0.35 * small_glow)
-    text(c, "*期限可能延长", 60, 170, 13, pal("#555555"), font=CJK)
+    text(c, small, 60, 170, 13, pal("#555555"), font=CJK)
     src(c, pal("#c4312f")); c.arc(100, 140, 20, 0, 2 * math.pi); c.set_line_width(3); c.stroke()
     c.restore()
 

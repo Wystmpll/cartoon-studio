@@ -2,6 +2,7 @@
 import re
 from engine import *
 
+CAP = {}   # current caption style (set by render.load_project)
 KEY_RED = set()   # filled by project: danger words (upper-case, without punctuation)
 KEY_YEL = set()   # names, numbers, key nouns
 
