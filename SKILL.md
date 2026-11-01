@@ -12,7 +12,17 @@ so any look the kit can draw is available; photorealism and AI-generated images 
 The proven result to aim for: 2-minute parts in the style of the "survival.loop" TikTok series — big karaoke captions,
 sticky notes, timers, flat characters with expressive faces, a cut every 3-10 s, a cliffhanger at the end of each part.
 
-## Files in this skill
+## Setup (every session)
+The engine lives in a public GitHub repo; fetch it into `~/cs` (a few seconds):
+```bash
+[ -d ~/cs/kit ] || git clone --depth 1 https://github.com/Wystmpll/cartoon-studio ~/cs
+bash ~/cs/kit/check_env.sh            # pycairo, numpy, pillow, ffmpeg, fonts
+```
+If the clone fails (no network to GitHub), look for `kit/` next to this SKILL.md and copy it, `library/` and
+`references/` into `~/cs`; if neither exists, tell the user the engine is missing rather than rebuilding it.
+All paths below (`~/cs/kit/...`, `~/cs/references/...`) refer to that copy.
+
+## What's in ~/cs
 - `kit/` — the engine. `render.py` (scenes → video), `audio.py` (music + SFX + mix → FINAL mp4), `align.py` (voice →
   word timings), `tts_dev.py` (free robotic draft voice), `preview.py` (character sheet, style grid, storyboard frames),
   `world.py` (sets, props, FX, UI), `chars.py` (characters), `styles.py` (18 styles), `captions.py`, `engine.py`,
@@ -25,15 +35,7 @@ sticky notes, timers, flat characters with expressive faces, a cut every 3-10 s,
 - `references/voice.md` — narration options and exact steps (read before the voice step).
 - `library/*.json` — saved casts (e.g. `npu_friends`).
 
-If the folder holds only SKILL.md (no `kit/`), the kit is missing — see "Getting the kit" at the end.
-
-## Setup (every session)
-```bash
-SK=<this skill's directory>          # where this SKILL.md lives
-mkdir -p ~/cs && cp -r $SK/kit $SK/library ~/cs/
-bash ~/cs/kit/check_env.sh            # pycairo, numpy, pillow, ffmpeg, fonts
-```
-Work on the copy (`~/cs/kit`), never inside the skill folder. One project = one folder (e.g. `~/films/zombie`):
+One project = one folder (e.g. `~/films/zombie`):
 `project.json`, `script.py`, `scenes_p<N>.py`, optional `characters.json`; the kit writes `timing/`, `voice/`, `out/`.
 Use a task list: interview, checkpoint 1, cast+style, checkpoint 2, voice, scenes per part, render, checkpoint 3, lessons.
 
@@ -55,7 +57,7 @@ narrator voice (pitch via autocorrelation ≈ 100-130 Hz = deep male), structure
 Summarise the style in 3-5 lines to the user.
 
 ## Step 1 — interview
-Read `references/interview.md`. Blocks A-H: format, genre/tone, place, characters (the biggest), style, narration,
+Read `~/cs/references/interview.md`. Blocks A-H: format, genre/tone, place, characters (the biggest), style, narration,
 sound, process. Up to ~50 questions is fine, but never re-ask what is known (conversation, library, reference).
 Choices via AskUserQuestion (≤4 per call); free-text blocks as numbered lists. Offer a default for everything —
 "сам выбери" is a valid answer: decide and say what you chose. Echo each block back in 1-2 lines.
@@ -63,13 +65,13 @@ Choices via AskUserQuestion (≤4 per call); free-text blocks as numbered lists.
 a logline. If they will voice it themselves, give the text as files and say "вставь целиком, не читая".
 
 ## Step 2 — story → checkpoint 1
-Read `references/story.md`. Pace ≈ 2.3 words/s: 2 min ≈ 250-270 Russian words (~1500 chars); 13-20 scenes per part;
+Read `~/cs/references/story.md`. Pace ≈ 2.3 words/s: 2 min ≈ 250-270 Russian words (~1500 chars); 13-20 scenes per part;
 a 4 s end card per part. Every named character gets a beat only they could do. Plant clues early, pay them off later.
 Write `script.py`, count words per part (`re.findall(r"\w+")`), then show the package: title, parts + titles, 3-5
 line synopsis each (or logline), cast with roles, style, voice, music. Ask «Утверждаем или что поменять?».
 
 ## Step 3 — cast and style → checkpoint 2
-Read `references/characters.md` and `references/styles.md`. Reuse library characters; new ones go to
+Read `~/cs/references/characters.md` and `references/styles.md`. Reuse library characters; new ones go to
 `characters.json`. Make the cast distinct (height, width, hair shape, one signature colour, one accessory each).
 Then: `python ~/cs/kit/tts_dev.py PROJ 1` (draft voice → timings, so scenes can be timed now), write 3-4 key scenes,
 and render `preview.py chars PROJ` + `preview.py frames PROJ 1 id:0.6 …` (+ `preview.py styles …` if the style is
@@ -77,7 +79,7 @@ undecided). Look at every image yourself first (overlaps, cropped heads, unreada
 character sheet and frames with SendUserFile. Ask for approval or changes.
 
 ## Step 4 — narration
-Read `references/voice.md` and pick with the user:
+Read `~/cs/references/voice.md` and pick with the user:
 - **A. Qwen3-TTS on their Mac** (free, close to ElevenLabs, voice design + cloning, Russian and English) — default for
   Mac users. One-time setup in Terminal, then one command per part; Claude reads the result from the connected folder.
 - **B. ElevenLabs** (their account) — give one .txt per part, they send mp3s back.
@@ -89,7 +91,7 @@ means a clean match. If a voice file can't be matched (missing sentence, extra w
 Map ElevenLabs files to parts by the timestamp in their names. Keep at most 3-4 permanent voices per user.
 
 ## Step 5 — scenes
-Read `references/scene-api.md`. One function per scene id in `scenes_p<N>.py`, anchored to words (`S.w("слово")`) and
+Read `~/cs/references/scene-api.md`. One function per scene id in `scenes_p<N>.py`, anchored to words (`S.w("слово")`) and
 lines (`S.L(i)`) so it survives a new voice with different timing. Compose in the language of the chosen style. Every
 scene needs motion (walk, camera push, pop-ins, FX) and 1-3 SFX on real events (`S.sfx("door", S.w("дверь"))`).
 Review stills before rendering: `render.py PROJ N --stills id:0.3 id:0.8 …` then `preview.py sheet` — check every
@@ -111,7 +113,7 @@ Ask three short questions: what to keep, what to change, what was missing. Then:
 1. Add new characters / changed looks to the library JSON (looks + neutral traits only).
 2. Add 1-5 concrete lessons to "Lessons" below (what to do differently and why).
 3. Propose the updated skill to the user (propose_skills with the full new SKILL.md); library or kit changes go into
-   the kit source (see "Getting the kit").
+   the GitHub repo (see "Improving the engine").
 Keep lessons general enough to help the next, different film.
 
 ## Lessons (from real films)
@@ -136,7 +138,7 @@ nickname is a superhero). Voice cloning only from a sample of a person who agree
 it themselves) — never celebrities or TikTok narrators. Music: synthesised score only; tell users to add trending
 songs inside TikTok.
 
-## Getting the kit
-The kit is ~3000 lines of Python plus the library and references; it must sit next to this file. If it's missing,
-look for it in the user's files (a `cartoon-studio-kit.zip` they may attach) and unpack it beside SKILL.md's copy in
-`~/cs/`. Without the kit, tell the user what's missing rather than rebuilding the engine from scratch.
+## Improving the engine
+Kit and library changes (bug fixes, new sets, new characters) go to the GitHub repo `Wystmpll/cartoon-studio`; only
+its owner's sessions can push (attach the repo with push access, commit, push). Instruction changes go into this
+SKILL.md through a proposed skill update. The learning loop uses both.
