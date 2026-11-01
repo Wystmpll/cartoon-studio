@@ -15,8 +15,14 @@ PY=$(brew --prefix python@3.11)/bin/python3.11
 [ -d .venv ] || $PY -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install "qwen-tts-cli[mlx]" edge-tts
-mkdir -p presets jobs
+pip install edge-tts
+mkdir -p presets jobs samples
+echo "== Quick win: Microsoft neural voices (edge-tts), samples in the 'samples' folder =="
+T="Слушайте внимательно. Сегодня ночью в общежитии случилось то, чего никто не ожидал. И это только начало."
+edge-tts --voice ru-RU-DmitryNeural   --rate=-5% --text "$T" --write-media samples/dmitry.mp3 || true
+edge-tts --voice ru-RU-SvetlanaNeural --rate=-5% --text "$T" --write-media samples/svetlana.mp3 || true
+echo "== Now Qwen3-TTS (the best free voice; slow first run) =="
+pip install "qwen-tts-cli[mlx]" || { echo "Qwen install failed - samples/ still works"; exit 1; }
 echo "Downloading models and creating 4 starter voices (first time is slow)..."
 python voice.py design narrator_deep  "Deep, calm, low male narrator voice, documentary style, slow and tense, dramatic pauses" --lang ru
 python voice.py design narrator_young "Young energetic male voice, clear and fast, slightly ironic storyteller" --lang ru
